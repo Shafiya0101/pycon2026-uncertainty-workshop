@@ -57,6 +57,19 @@ scripts/          make synthetic data, validate data, export template
 docs/             instructor notes
 ```
 
+## Background
+This workshop builds on the final-year thesis:
+Kausar, S. (2026). *Intuition in AI Systems and Reducing Hallucination: Metacognitive Uncertainty
+Estimation for Hallucination Detection in Large Language Models.* aivancity Paris, supervised by
+Prof. Yasser Khalafaoui. DOI: [10.13140/RG.2.2.11958.66884](https://doi.org/10.13140/RG.2.2.11958.66884)
+(preprint, CC BY 4.0). Research code: https://github.com/Shafiya0101/metacognitive-uncertainty-layer
+
+**Note on results.** The thesis reports a fingerprint policy reaching 93.87% accuracy at 81.5%
+coverage. That policy defines "knowledge gap" using correctness labels, so it cannot run in a real
+system. A follow-up study with label-free fingerprints and matched-coverage comparisons finds
+91.2% accuracy at 56.5% coverage, and plain thresholds do as well. The workshop teaches the
+stricter evaluation.
+
 ## Sources and credits
 * Datasets: TriviaQA (Joshi et al., 2017), Natural Questions (Kwiatkowski et al., 2019), HotpotQA (Yang et al., 2018).
 * Models: Mistral-7B-Instruct-v0.3, Qwen2-7B-Instruct, Qwen2-1.5B-Instruct; NLI model DeBERTa-Large-MNLI.
