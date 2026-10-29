@@ -1,19 +1,18 @@
 """The four uncertainty signals (higher value = more uncertain)."""
 import re
+import string
 from collections import Counter
 import numpy as np
 from sklearn.metrics import roc_auc_score
 
-_ARTICLES = re.compile(r"\b(a|an|the)\b")
-
 
 def normalize(text):
-    """Lower-case, drop the answer template, punctuation and articles."""
-    t = text.lower().strip()
-    t = re.sub(r"^the answer to the question is:?\s*", "", t)
-    t = re.sub(r"[^\w\s]", " ", t)
-    t = _ARTICLES.sub(" ", t)
-    return " ".join(t.split())
+    """Identical to normalize_answer() in the thesis pipeline (run_pipeline.py):
+    lower-case, drop the articles a/an/the, delete punctuation, collapse whitespace."""
+    text = text.lower().strip()
+    text = re.sub(r"\b(a|an|the)\b", " ", text)
+    text = text.translate(str.maketrans("", "", string.punctuation))
+    return " ".join(text.split())
 
 
 def self_consistency_uncertainty(samples):
@@ -40,8 +39,8 @@ def greedy_cluster(bidir):
 def semantic_entropy(cluster_ids):
     """U_SE = -sum_k p_k log p_k, with p_k = share of samples in meaning cluster k."""
     counts = np.array(list(Counter(cluster_ids).values()), dtype=float)
-    p = counts / counts.sum()
-    return float(-(p * np.log(p)).sum())
+    p = counts / len(cluster_ids)
+    return float(-np.sum(p * np.log(p + 1e-12)))
 
 
 def logprob_uncertainty(token_logprobs):
@@ -79,3 +78,4 @@ def auroc_table(df, label_col="label_containment"):
     wrong = 1 - df[label_col].to_numpy()
     cols = ["U_lp", "U_sc", "U_se", "U_nli", "Comb3", "Comb4"]
     return {c: float(roc_auc_score(wrong, df[c])) for c in cols}
+
