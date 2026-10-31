@@ -114,9 +114,10 @@ n.md("""## Step 1 · Self-consistency (SC)
 `U_SC = 1 − (size of the largest group of identical answers) / N`.
 10/10 identical → 0.0. Five different answers, two each → 0.8.
 
-**Predict first:** two answers like `Gold-1` and `The answer to the question is: Gold-1`: same group or different? (The helper `normalize()` decides; try it.)""")
+**Predict first:** `Car Seats`, `car seats`, `The Car Seats.` and `Car Seats (Automobile Interiors)`: which of these end up in the same group? (The helper `normalize()` decides; try it.)""")
 n.code(r'''
-print(normalize("The answer to the question is: Gold-1"), "|", normalize("Gold-1, I believe"))
+for a in ["Car Seats", "car seats", "The Car Seats.", "Car Seats (Automobile Interiors)"]:
+    print(repr(a), "->", repr(normalize(a)))
 ''')
 n.md("### 🛠 TODO 1: implement `my_self_consistency`")
 n.todo(r'''
@@ -283,7 +284,7 @@ n.code(r'''
 maskA, maskB = (df.region != "Gap-like").to_numpy(), (df.region == "Confident").to_numpy()
 pts = [(maskA.mean(), y[maskA].mean(), "Policy A", "*"), (maskB.mean(), y[maskB].mean(), "Policy B", "D")]
 for c, a, name, _ in pts:
-    print(f"{name}: coverage {c:.2f}, accuracy {a:.3f}")
+    print(f"{name}: coverage {c:.3f}, accuracy {a:.3f}")
 plot_risk_coverage(df, "label_containment", ["U_sc", "U_se", "U_lp", "U_nli", "Comb3"], extra_points=pts)
 plt.show()
 ''')

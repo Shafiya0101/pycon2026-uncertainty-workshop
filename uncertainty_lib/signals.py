@@ -40,7 +40,7 @@ def semantic_entropy(cluster_ids):
     """U_SE = -sum_k p_k log p_k, with p_k = share of samples in meaning cluster k."""
     counts = np.array(list(Counter(cluster_ids).values()), dtype=float)
     p = counts / len(cluster_ids)
-    return float(-np.sum(p * np.log(p + 1e-12)))
+    return max(0.0, float(-np.sum(p * np.log(p + 1e-12))))  # clip the -1e-12 artefact
 
 
 def logprob_uncertainty(token_logprobs):
