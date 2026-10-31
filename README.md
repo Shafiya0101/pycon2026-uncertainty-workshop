@@ -3,7 +3,7 @@
 PyCon ES 2026 · Barcelona · 6 November 2026 · 90 minutes
 Shafiya Kausar and Anuradha Kar, aivancity Paris
 
-**Repository:** https://github.com/Shafiya0101/pycones2026-uncertainty-workshop
+**Repository:** https://github.com/Shafiya0101/pycon2026-uncertainty-workshop
 (Research code and thesis: https://github.com/Shafiya0101/metacognitive-uncertainty-layer)
 
 ## What you need
@@ -12,8 +12,8 @@ Shafiya Kausar and Anuradha Kar, aivancity Paris
 
 ## Setup (do this before the workshop, 5 minutes)
 ```bash
-git clone https://github.com/Shafiya0101/pycones2026-uncertainty-workshop.git
-cd pycones2026-uncertainty-workshop
+git clone https://github.com/Shafiya0101/pycon2026-uncertainty-workshop.git
+cd pycon2026-uncertainty-workshop
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
@@ -22,7 +22,7 @@ jupyter lab
 Open `notebooks/00_setup_check.ipynb` and run both cells. You should see `✅ Setup OK`.
 
 **No Python installed?** Open the notebook on Google Colab instead (needs internet):
-[00_setup_check on Colab](https://colab.research.google.com/github/Shafiya0101/pycones2026-uncertainty-workshop/blob/main/notebooks/00_setup_check.ipynb)
+[00_setup_check on Colab](https://colab.research.google.com/github/Shafiya0101/pycon2026-uncertainty-workshop/blob/main/notebooks/00_setup_check.ipynb)
 
 ## What you will do
 | Notebook | Challenge | Time |

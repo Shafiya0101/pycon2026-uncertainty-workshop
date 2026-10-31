@@ -36,7 +36,7 @@ class NB:
 BOOT = r'''
 import sys, pathlib, warnings
 from collections import Counter
-REPO = "pycones2026-uncertainty-workshop"   # <- must match your GitHub repo name (used on Colab only)
+REPO = "pycon2026-uncertainty-workshop"   # <- must match your GitHub repo name (used on Colab only)
 if "google.colab" in sys.modules:
     ROOT = pathlib.Path("/content") / REPO
     if not ROOT.exists():
