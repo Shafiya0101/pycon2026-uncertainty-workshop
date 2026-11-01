@@ -53,7 +53,7 @@ notebooks/        exercises with TODO cells
 solutions/        completed notebooks (recovery points)
 uncertainty_lib/  signals, fingerprint, policy, plotting, checks
 data/             precomputed results (see data/README.md)
-scripts/          make synthetic data, validate data, export template
+scripts/          export, validate and verify the data (plus synthetic placeholders)
 docs/             instructor notes
 ```
 
@@ -82,3 +82,7 @@ stricter evaluation.
 * Vashurin et al. (2025), *Benchmarking uncertainty quantification methods for LLMs with LM-Polygraph*, TACL.
 
 License: MIT.
+
+## Data and licenses
+
+Code: MIT License (see LICENSE). The files in data/precomputed contain questions and reference answers from TriviaQA, Natural Questions and HotpotQA, plus model outputs. Those datasets keep their own licenses (Natural Questions and HotpotQA are released under CC BY-SA licenses, as far as we know), so please check the original sources before reusing the data.
