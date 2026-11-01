@@ -16,7 +16,7 @@
 Cut order if late: bonus cells, Challenge 1 to one question, part of results block.
 
 ## Before the workshop checklist
-- [ ] Export REAL data to `data/precomputed/` (see `scripts/export_precomputed_TEMPLATE.py`), run `python scripts/validate_data.py`
+- [ ] Export REAL data to `data/precomputed/` (see `scripts/export_precomputed.py`), run `python scripts/validate_data.py`
 - [ ] Re-run `python tools/run_notebooks.py solutions` on the real data and re-read every printed number
 - [ ] Check that the narrative still holds on real data (synthetic data is NOT the paper's data)
 - [ ] Dry run on a clean machine (and a second OS) with someone at attendee level, with a stopwatch

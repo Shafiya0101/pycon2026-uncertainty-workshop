@@ -86,3 +86,22 @@ License: MIT.
 ## Data and licenses
 
 Code: MIT License (see LICENSE). The files in data/precomputed contain questions and reference answers from TriviaQA, Natural Questions and HotpotQA, plus model outputs. Those datasets keep their own licenses (Natural Questions and HotpotQA are released under CC BY-SA licenses, as far as we know), so please check the original sources before reusing the data.
+
+## Troubleshooting
+
+Windows PowerShell refuses to activate the environment (running scripts is disabled): use Command Prompt, or skip activation and call the environment's Python directly:
+
+    .venv\Scripts\python.exe -m pip install -r requirements.txt
+    .venv\Scripts\python.exe -m jupyter lab
+
+Windows says an Application Control policy blocked a package (pandas, for example): some company or university laptops block newly installed packages. Use the Google Colab links below, which need no installation.
+
+Installation is slow or pip cannot find a package: check your internet connection, then use Colab.
+
+Colab links (a Google account and internet are needed):
+
+- [00_setup_check](https://colab.research.google.com/github/Shafiya0101/pycon2026-uncertainty-workshop/blob/main/notebooks/00_setup_check.ipynb)
+- [01_uncertainty_signals](https://colab.research.google.com/github/Shafiya0101/pycon2026-uncertainty-workshop/blob/main/notebooks/01_uncertainty_signals.ipynb)
+- [02_fingerprinting](https://colab.research.google.com/github/Shafiya0101/pycon2026-uncertainty-workshop/blob/main/notebooks/02_fingerprinting.ipynb)
+- [03_adaptive_policy](https://colab.research.google.com/github/Shafiya0101/pycon2026-uncertainty-workshop/blob/main/notebooks/03_adaptive_policy.ipynb)
+- [04_break_the_detector](https://colab.research.google.com/github/Shafiya0101/pycon2026-uncertainty-workshop/blob/main/notebooks/04_break_the_detector.ipynb)
