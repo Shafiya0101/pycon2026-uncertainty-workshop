@@ -323,7 +323,101 @@ def tab_map():
     right.dataframe(summ, hide_index=True, use_container_width=True)
 
 
-# ----------------------------------------------------------------------------- tab 5: your own answers (lightweight)
+# ----------------------------------------------------------------------------- tab 5: break the detector
+CAUSES = {
+    "fabrication": ("🤖 Fabrication", "The model really is wrong.", "Says “Sydney” for the capital of Australia."),
+    "strict_gold": ("📏 Answer key too strict", "Right answer, but the key wants exact words.", "Says “physician”; the key says “doctor”."),
+    "label_noise": ("🏷️ Grading mistake", "The label itself is wrong.", "A wrong answer gets credit for mentioning the right word."),
+    "ambiguous": ("🤷 Ambiguous", "Reasonable people would disagree.", "“Who invented the telephone?” Bell or Meucci?"),
+}
+
+
+@st.cache_resource(show_spinner="Loading all five study settings…")
+def load_break_data():
+    """Break the detector always uses all five settings (like notebook 04), whatever ACTIVE is."""
+    frames = [ufp.add_regions(ufp.add_signals(ufp.load_setting(k))) for k in ufp.SETTINGS]
+    return pd.concat(frames, ignore_index=True)
+
+
+def save_verdict(case_id, widget_key):
+    st.session_state.setdefault("verdicts", {})[case_id] = st.session_state[widget_key]
+
+
+def tab_break():
+    allq = load_break_data()
+    st.markdown("### Break the detector")
+    st.markdown("The detector said “fine”, but the answer was marked wrong. **Whose fault is it?** "
+                "Find answers where the detector is wrong or overconfident, and say *why*. Same data as notebook 04, all five settings.")
+    st.session_state.setdefault("verdicts", {})
+
+    # Step 1
+    st.markdown("#### Step 1 · How often is *unanimous* still wrong?")
+    st.caption("Unanimous = all 10 samples identical. If agreement guaranteed correctness, the last column would be 0%.")
+    g = allq.groupby("setting")
+    tab = pd.DataFrame({"Questions": g.size(),
+                        "Unanimous": g.apply(lambda d: int((d.U_sc == 0).sum())),
+                        "Unanimous and wrong": g.apply(lambda d: int(((d.U_sc == 0) & (d.label_containment == 0)).sum()))})
+    tab.loc["All five settings"] = tab.sum()
+    tab["Share wrong"] = (tab["Unanimous and wrong"] / tab["Unanimous"].replace(0, np.nan)).map(lambda v: "-" if pd.isna(v) else f"{v:.1%}")
+    tab.index = [ALL_LABELS.get(i, i) for i in tab.index]
+    st.dataframe(tab, use_container_width=True)
+    total = int(tab.loc["All five settings", "Unanimous and wrong"])
+    st.markdown(f"**{total} confident fabrications** across the five settings: the model gave the same wrong answer all 10 times.")
+
+    # Step 2
+    st.markdown("#### Step 2 · Judge the confident-but-wrong cases")
+    cols = st.columns(4)
+    for col, (code, (title, what, ex)) in zip(cols, CAUSES.items()):
+        col.markdown(f"**{title}**  \n{what}  \n*{ex}*")
+    cases = allq[(allq.U_sc == 0) & (allq.label_containment == 0)].reset_index(drop=True)
+    cases["case_id"] = cases.setting + " · " + cases.qid.astype(str)
+    names = dict(zip(cases.case_id, cases.question))
+    verdicts = st.session_state.verdicts
+    pick = st.selectbox("Case", cases.case_id.tolist(), key="b_case",
+                        format_func=lambda c: ("✔ " if c in verdicts else "") + f"{c} · {names[c][:70]}")
+    r = cases[cases.case_id == pick].iloc[0]
+    gold = ", ".join(r["gold"][:4]) + (" …" if len(r["gold"]) > 4 else "")
+    show(f"""<div style="{CARD}"><div style="{LABEL}">{E(ALL_LABELS[r['setting']])} · {E(str(r['qid']))}</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:10px">{E(r['question'])}</div>
+      <div style="{LABEL}">The AI's answer (all 10 samples agree)</div><div style="font-size:18px">{E(r['greedy'])}</div>
+      <div style="margin-top:10px"><b>Accepted answers:</b> {E(gold)}</div>
+      <div style="margin-top:4px"><b>Word-matching rule:</b> ❌ wrong &nbsp;·&nbsp; <b>AI judge:</b> {'✅ correct' if r['label_judge'] else '❌ wrong'}</div></div>""")
+    wkey = "b_verdict_" + pick
+    codes = list(CAUSES)
+    st.radio("Your verdict", codes, index=codes.index(verdicts[pick]) if pick in verdicts else None,
+             format_func=lambda c: CAUSES[c][0] + " · " + CAUSES[c][1], key=wkey, on_change=save_verdict, args=(pick, wkey))
+    if verdicts:
+        tally = pd.Series(verdicts).value_counts().reindex(codes).fillna(0).astype(int)
+        t1, t2 = st.columns([2, 3])
+        t1.markdown(f"**Your verdicts so far: {len(verdicts)} of {len(cases)}**")
+        t1.dataframe(tally.rename("cases").to_frame().rename(index=lambda c: CAUSES[c][0]), use_container_width=True)
+        out = pd.DataFrame({"case": list(verdicts), "verdict": list(verdicts.values())})
+        t2.download_button("⬇ Download my verdicts (CSV)", out.to_csv(index=False).encode(), "my_verdicts.csv", "text/csv", key="b_dl")
+        t2.caption("Verdicts live in this browser tab only. Download them before you close it.")
+
+    # Step 3
+    st.markdown("#### Step 3 · Where do the two graders disagree?")
+    dis = allq[allq.label_containment != allq.label_judge]
+    st.markdown(f"**{len(dis)} of {len(allq)} answers ({len(dis) / len(allq):.1%})** get different labels from the word-matching rule and the AI judge. "
+                "Disagreements show how label noise moves results.")
+    st.dataframe(dis[["setting", "question", "greedy", "gold", "label_containment", "label_judge"]].head(8)
+                 .assign(gold=lambda d: d.gold.map(lambda x: ", ".join(x[:3]))), hide_index=True, use_container_width=True)
+
+    # Step 4
+    st.markdown("#### Step 4 · The detector's most confident mistakes")
+    st.caption("Wrong answers with the lowest combined uncertainty (Comb4): the system would answer these without hesitation.")
+    worst = allq[allq.label_containment == 0].nsmallest(10, "Comb4")
+    st.dataframe(worst[["setting", "question", "greedy", "gold", "U_sc", "U_se", "U_lp", "U_nli", "Comb4"]]
+                 .assign(gold=lambda d: d.gold.map(lambda x: ", ".join(x[:3]))).round(2), hide_index=True, use_container_width=True)
+
+    st.markdown("#### Discussion")
+    st.markdown("1. Which failures could a **better detector** fix, and which need **outside evidence** (retrieval, a database, a human)?\n"
+                "2. How much of what looks like “model error” is actually **label error**?\n"
+                "3. Your product answers medical or legal questions. Which **coverage** would you accept, and who handles the abstentions?\n"
+                "4. Would you add a fifth sampling signal, or something of a different kind?")
+
+
+# ----------------------------------------------------------------------------- tab 6: your own answers (lightweight)
 def tab_own():
     st.markdown("Ask **any chatbot** the same question 5–10 times (a new chat each time) and paste the answers, one per line.")
     st.info("Lightweight mode: this hosted version has no NLI model, so answers are grouped by **exact wording** after normalisation "
@@ -371,7 +465,8 @@ st.title("🧭 Metacognitive Uncertainty Layer")
 st.markdown(f"**Can you tell when an AI is making things up?** Real answers from {n_models} models on {n_sets} datasets "
             f"({n_q:,} questions), scored with the four uncertainty signals from the PyCon ES 2026 workshop.")
 
-t1, t2, t3, t4, t5 = st.tabs(["🎯 Trust or not?", "🔍 Explore", "🎛️ Policy playground", "🗺️ Fingerprint map", "🧪 Your own answers"])
+t1, t2, t3, t4, t5, t6 = st.tabs(["🎯 Trust or not?", "🔍 Explore", "🎛️ Policy playground", "🗺️ Fingerprint map",
+                                  "🕵️ Break the detector", "🧪 Your own answers"])
 with t1:
     tab_game()
 with t2:
@@ -381,6 +476,8 @@ with t3:
 with t4:
     tab_map()
 with t5:
+    tab_break()
+with t6:
     tab_own()
 
 st.markdown("---")
