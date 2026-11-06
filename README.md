@@ -10,6 +10,8 @@ Shafiya Kausar and Anuradha Kar, aivancity Paris
 **Repository:** https://github.com/Shafiya0101/pycon2026-uncertainty-workshop
 (Research code and thesis: https://github.com/Shafiya0101/metacognitive-uncertainty-layer)
 
+**Live demo app:** https://pycon2026-uncertainty-workshop.streamlit.app/ (try it in your browser, nothing to install)
+
 ## What you need
 * Python 3.10 or newer and a laptop. **No GPU, no API key, no model download, no internet during the session.**
 * About 100 MB of disk space.
