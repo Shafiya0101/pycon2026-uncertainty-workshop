@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/pycones2026-logo.png" alt="PyCon ES 2026 Barcelona" width="420">
+</p>
+
 # Detecting LLM Hallucinations with Uncertainty Fingerprinting: A Python Workshop
 
 PyCon ES 2026 · Barcelona · 6 November 2026 · 90 minutes
