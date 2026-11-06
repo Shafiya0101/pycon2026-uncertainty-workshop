@@ -386,6 +386,9 @@ def tab_break():
     codes = list(CAUSES)
     st.radio("Your verdict", codes, index=codes.index(verdicts[pick]) if pick in verdicts else None,
              format_func=lambda c: CAUSES[c][0] + " · " + CAUSES[c][1], key=wkey, on_change=save_verdict, args=(pick, wkey))
+    st.caption(f"Your verdict only goes into the tally below. It doesn't change the AI or the detector. "
+               f"It just helps you count: out of these {len(cases)} wrong answers, how many are really the AI's fault, "
+               f"and how many happened because the answer key or the question was unfair?")
     if verdicts:
         tally = pd.Series(verdicts).value_counts().reindex(codes).fillna(0).astype(int)
         t1, t2 = st.columns([2, 3])
@@ -394,27 +397,6 @@ def tab_break():
         out = pd.DataFrame({"case": list(verdicts), "verdict": list(verdicts.values())})
         t2.download_button("⬇ Download my verdicts (CSV)", out.to_csv(index=False).encode(), "my_verdicts.csv", "text/csv", key="b_dl")
         t2.caption("Verdicts live in this browser tab only. Download them before you close it.")
-
-    # Step 3
-    st.markdown("#### Step 3 · Where do the two graders disagree?")
-    dis = allq[allq.label_containment != allq.label_judge]
-    st.markdown(f"**{len(dis)} of {len(allq)} answers ({len(dis) / len(allq):.1%})** get different labels from the word-matching rule and the AI judge. "
-                "Disagreements show how label noise moves results.")
-    st.dataframe(dis[["setting", "question", "greedy", "gold", "label_containment", "label_judge"]].head(8)
-                 .assign(gold=lambda d: d.gold.map(lambda x: ", ".join(x[:3]))), hide_index=True, use_container_width=True)
-
-    # Step 4
-    st.markdown("#### Step 4 · The detector's most confident mistakes")
-    st.caption("Wrong answers with the lowest combined uncertainty (Comb4): the system would answer these without hesitation.")
-    worst = allq[allq.label_containment == 0].nsmallest(10, "Comb4")
-    st.dataframe(worst[["setting", "question", "greedy", "gold", "U_sc", "U_se", "U_lp", "U_nli", "Comb4"]]
-                 .assign(gold=lambda d: d.gold.map(lambda x: ", ".join(x[:3]))).round(2), hide_index=True, use_container_width=True)
-
-    st.markdown("#### Discussion")
-    st.markdown("1. Which failures could a **better detector** fix, and which need **outside evidence** (retrieval, a database, a human)?\n"
-                "2. How much of what looks like “model error” is actually **label error**?\n"
-                "3. Your product answers medical or legal questions. Which **coverage** would you accept, and who handles the abstentions?\n"
-                "4. Would you add a fifth sampling signal, or something of a different kind?")
 
 
 # ----------------------------------------------------------------------------- tab 6: your own answers (lightweight)
