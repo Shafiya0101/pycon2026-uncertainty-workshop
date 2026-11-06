@@ -29,12 +29,13 @@ Open `notebooks/00_setup_check.ipynb` and run both cells. You should see `✅ Se
 |---|---|---|
 | `00_setup_check` | environment check | 2 min |
 | `01_uncertainty_signals` | **2** build a self-consistency detector, then semantic entropy, log-probability and NLI | 12 min |
-| `02_fingerprinting` | **3** build a fingerprint, find a confident fabrication | 12 min |
-| `03_adaptive_policy` | **4** design an answer / verify / abstain policy | 12 min |
+| `02_fingerprinting` | **3** compare the fingerprints of different models (run and read, no code to write) | 12 min |
+| `03_adaptive_policy` | **4** explore an answer / verify / abstain policy (run, change two numbers, read) | 12 min |
 | `04_break_the_detector` | **5** find where the detector fails | 15 min |
 
 Challenge 1 ("Can you spot the hallucination?") is a poll on the slides.
-Stuck? Full solutions are in `solutions/` with the same file names.
+Only notebook 01 has code to write. Stuck? Full solutions are in `solutions/` with the same file names
+(for notebooks 00, 02, 03 and 04 the solution is identical to the notebook, because there is nothing to fill in).
 
 ## What we found (summary of the study)
 We tested whether combining uncertainty signals, or reading their joint "fingerprint", beats a single signal.
@@ -49,11 +50,14 @@ Limits: 200 questions per setting, 3 quantized models, short factual answers, la
 
 ## Repository map
 ```
-notebooks/        exercises with TODO cells
+notebooks/        the workshop notebooks (TODO cells only in 01)
 solutions/        completed notebooks (recovery points)
 uncertainty_lib/  signals, fingerprint, policy, plotting, checks
 data/             precomputed results (see data/README.md)
 scripts/          export, validate and verify the data (plus synthetic placeholders)
+tools/            build_notebooks.py (generates notebooks/ and solutions/) and run_notebooks.py (smoke test)
+streamlit-app/    interactive demo (see streamlit-app/README.md)
+slides/           slides (added after the workshop)
 docs/             instructor notes
 ```
 

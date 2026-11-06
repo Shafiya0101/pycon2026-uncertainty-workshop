@@ -195,77 +195,63 @@ n.save()
 
 # ---------------------------------------------------------------- 02
 n = NB("02_fingerprinting")
-n.md("""# 02 · Uncertainty fingerprints (≈ 12 min)
-**Challenge 3: build a fingerprint and find the confident fabrication the signals miss.**
+n.md(r"""# 02 · Uncertainty fingerprints (≈ 12 min)
+**Challenge 3: see how different models have different fingerprints.**
 
-A **fingerprint** is the cell of the (SC, SE) plane an answer falls in. We cut each axis at its **median**:
+**No code to write:** run the two cells, read the grids, compare.
 
-| Region | SC | SE | Reading |
+A **fingerprint** is the box an answer lands in. For each question we look at two signals from notebook 01:
+**SC** (do the 10 answers use the same words?) and **SE** (do they mean the same thing?).
+We cut each at its **median** (the middle value), which gives four boxes:
+
+| Box | SC | SE | Reading |
 |---|---|---|---|
-| Confident | low | low | samples agree |
-| Gap-like | high | high | samples disagree |
-| Shallow | low | high | strings agree, meanings differ |
-| Surface-varying | high | low | wording differs, meaning agrees |
+| Confident | low | low | the 10 answers agree |
+| Gap-like | high | high | the 10 answers disagree |
+| Shallow | low | high | same words, different meanings (rare) |
+| Surface-varying | high | low | different words, same meaning (rare) |
 
-No labels are used to build it, so it could run in a real system.""")
+No answer key is used to build the boxes, so this could run in a real system.""")
 n.code(BOOT)
+n.md(r"""## Step 1 · Run: the fingerprint of Mistral-7B
+**Look for:** in which box are most of the wrong answers? How many questions are in each box?""")
 n.code(r'''
-df = add_signals(load_setting("mistral_triviaqa"))
-checks.banner(df)
-from scipy.stats import spearmanr
-rho = spearmanr(df.U_sc, df.U_se).statistic
-print(f"Rank correlation SC vs SE: {rho:.2f}   (close to 1 means they carry almost the same information)")
-tau_sc, tau_se = fit_medians(df)
-print(f"Median thresholds: tau_SC = {tau_sc:.2f}, tau_SE = {tau_se:.2f}")
-''')
-n.md("### 🛠 TODO 3: write the region rule")
-n.todo(r'''
-def my_region(sc, se, tau_sc, tau_se):
-    """Return 'Confident', 'Gap-like', 'Shallow' or 'Surface-varying'."""
-    # TODO 3: compare each signal with its threshold. A value EQUAL to the median counts as LOW.
-    raise NotImplementedError("Fill in my_region")
-''', r'''
-def my_region(sc, se, tau_sc, tau_se):
-    sc_high, se_high = sc > tau_sc, se > tau_se
-    if not sc_high and not se_high: return "Confident"
-    if sc_high and se_high:         return "Gap-like"
-    if not sc_high and se_high:     return "Shallow"
-    return "Surface-varying"
-''')
-n.code(r'''
-checks.check_region(my_region, tau_sc, tau_se)
-''')
-n.code(r'''
-df["region"] = [my_region(a, b, tau_sc, tau_se) for a, b in zip(df.U_sc, df.U_se)]
-summary = region_summary(df)
-print(summary.round(3))
-plot_region_grid(summary)
-plt.show()
-''')
-n.md("""**Observe:** how many regions have enough questions to say anything? Usually only *Confident* and *Gap-like* are well populated.
-The error rate in *Gap-like* is the highest. That is the information that actually matters.""")
-n.md("""## Challenge 3 · The confident fabrication
-"Confident" by the median is only *relative*. Use an **absolute** definition: all 10 samples identical (`U_SC = 0`) **and** the answer is wrong.""")
-n.code(r'''
-bad = unanimous_errors(df)
-print(f"{len(bad)} unanimous-but-wrong answers out of {len(df)} questions")
-pct = lambda c: df[c].rank(pct=True)          # 0 = most certain, 1 = most uncertain
-view = bad.assign(LP_pct=pct("U_lp")[bad.index], NLI_pct=pct("U_nli")[bad.index],
-                  Comb4_pct=pct("Comb4")[bad.index])
-view[["question", "greedy", "gold", "region", "LP_pct", "NLI_pct", "Comb4_pct"]].round(2)
-''')
-n.md("""**Questions to answer in pairs (3 min)**
-1. Which region do these answers fall in? Could a policy that abstains on *Gap-like* ever catch them?
-2. Do LP or NLI flag them? (a percentile near 1.0 = flagged, near 0 = invisible)
-3. What kind of evidence *outside the model* could catch them?
+def show_fingerprint(setting):
+    df = add_signals(load_setting(setting))
+    checks.banner(df)
+    tau_sc, tau_se = fit_medians(df)
+    df = add_regions(df, tau_sc, tau_se)
+    summary = region_summary(df)
+    print(f"{setting}: medians  SC = {tau_sc:.2f}   SE = {tau_se:.2f}")
+    print(summary.round(3))
+    plot_region_grid(summary, title=f"Wrong answers per box: {setting}")
+    plt.show()
 
-**Bonus (fast finishers):** change `"mistral_triviaqa"` to `"qwen2_1_5b_triviaqa"`. What happens to `tau_SC`, and to who counts as "Confident"?""")
+show_fingerprint("mistral_triviaqa")
+''')
+n.md(r"""## Step 2 · Your turn: change the model
+In the cell below, change the name to **`"qwen2_1_5b_triviaqa"`** (a smaller model) and run it.
+You can also try `"qwen2_7b_triviaqa"`, `"mistral_nq"` or `"mistral_hotpotqa"`.
+
+**Look for:** did the medians move? How many answers are wrong in the *Confident* box now?""")
+n.code(r'''
+show_fingerprint("mistral_triviaqa")      # <- change this name, then run
+''')
+n.md(r"""## What to take away
+**Different models have different fingerprints.**
+* On the real data, Mistral-7B's *Confident* box is mostly right (about 6.5% wrong), while its *Gap-like* box is wrong about 42% of the time.
+* For the smaller Qwen2-1.5B, the medians move a lot (SC from 0.20 to 0.70), and its *Confident* box is wrong about 40% of the time.
+* So "Confident" is only **relative to the model**: the cut-offs must be fitted for each model and each dataset, and a confident answer is not always a correct one.
+
+*Optional, for later:* `unanimous_errors(df)` lists answers where all 10 samples agree and the answer is still wrong (the "confident fabrication").""")
 n.save()
 
 # ---------------------------------------------------------------- 03
 n = NB("03_adaptive_policy")
-n.md("""# 03 · Adaptive policy (≈ 12 min)
-**Challenge 4: design an adaptive policy** that decides to **answer**, **verify** (run an extra, costlier check) or **abstain**.
+n.md(r"""# 03 · Adaptive policy (≈ 12 min)
+**Challenge 4: explore an adaptive policy** that decides to **answer**, **verify** (run an extra, costlier check) or **abstain**.
+
+**No code to write:** run the cells, change two numbers, read the results.
 
 Key ideas
 * **Coverage** = fraction of questions the system answers. **Accuracy** is measured on answered questions only.
@@ -277,7 +263,7 @@ checks.banner(df)
 y = df.label_containment.to_numpy()
 print(f"Answer everything: accuracy = {y.mean():.3f}, coverage = 1.00")
 ''')
-n.md("""## Step 1 · Accuracy–coverage curves
+n.md(r"""## Step 1 · Accuracy–coverage curves
 Answer the lowest-uncertainty questions first. The two black markers are the fingerprint policies:
 **Policy A** abstains on *Gap-like*; **Policy B** answers only *Confident*.""")
 n.code(r'''
@@ -288,22 +274,18 @@ for c, a, name, _ in pts:
 plot_risk_coverage(df, "label_containment", ["U_sc", "U_se", "U_lp", "U_nli", "Comb3"], extra_points=pts)
 plt.show()
 ''')
-n.md("""**Look closely:** do the markers sit above the curves of the simple scores, or on them?""")
-n.md("### 🛠 TODO 4: write the three-action rule")
-n.todo(r'''
+n.md(r"""**Look closely:** do the markers sit above the curves of the simple scores, or on them?""")
+n.md(r"""## Step 2 · Run: the three-action rule
+Two cut-offs turn an uncertainty score into one of three actions. The rule is already written. Run the cell and read it.""")
+n.code(r'''
 def my_actions(score, t_answer, t_abstain):
     """score < t_answer -> 'answer';  t_answer <= score < t_abstain -> 'verify';  otherwise 'abstain'."""
-    # TODO 4: return a NumPy array of strings, one per question (hint: np.where, nested)
-    raise NotImplementedError("Fill in my_actions")
-''', r'''
-def my_actions(score, t_answer, t_abstain):
     score = np.asarray(score, float)
     return np.where(score < t_answer, "answer", np.where(score < t_abstain, "verify", "abstain"))
-''')
-n.code(r'''
+
 checks.check_actions(my_actions)
 ''')
-n.md("""## Challenge 4 · Your policy
+n.md(r"""## Challenge 4 · Your policy
 Pick two thresholds on the **Comb4** score (quantiles of the score: 0.5 means the median question).
 
 *Toy cost model (an assumption, see `evaluate_actions`):* sampling costs 1.0 per question; *verify* adds 2.0 and
@@ -319,7 +301,7 @@ print(pd.Series(actions).value_counts().to_dict())
 print(f"accuracy {res['accuracy']:.3f} | coverage {res['coverage']:.2f} | cost {res['cost_per_question']:.2f}")
 print("Eligible for the leaderboard" if res["coverage"] >= 0.60 else "Coverage below 0.60: not eligible")
 ''')
-n.md("""### Sweep: the trade-off at a glance
+n.md(r"""### Sweep: the trade-off at a glance
 Each row = a policy that answers up to `q_answer`, verifies up to `q_abstain`, abstains above.""")
 n.code(r'''
 rows = []
@@ -329,7 +311,7 @@ for qa in (0.3, 0.5, 0.7):
         rows.append({"q_answer": qa, "q_abstain": qb, **{k: round(v, 3) for k, v in r.items()}})
 pd.DataFrame(rows)
 ''')
-n.md("""## Step 2 · Does the *pattern* help, or just abstaining?
+n.md(r"""## Step 2 · Does the *pattern* help, or just abstaining?
 Compare Policy A with a **plain threshold on one score that answers the same fraction** (500 repetitions in the paper; 200 here).
 If the 95% interval of the difference contains 0, the pattern adds nothing detectable.""")
 n.code(r'''
@@ -337,7 +319,7 @@ cmp = matched_coverage_comparison(df, policy="A", n_rep=200)
 print(cmp.round(3))
 print("\nAny interval entirely above 0?", bool((cmp.ci_low > 0).any()))
 ''')
-n.md("""**Discuss (2 min):** what does it mean if a plain threshold matches the fingerprint? When would you still prefer the fingerprint? (Think: explaining *why* the system abstained.)
+n.md(r"""**Discuss (2 min):** what does it mean if a plain threshold matches the fingerprint? When would you still prefer the fingerprint? (Think: explaining *why* the system abstained.)
 
 **Bonus:** repeat with `label_col="label_judge"`, or with `policy="B"`. Does the conclusion change?""")
 n.save()
