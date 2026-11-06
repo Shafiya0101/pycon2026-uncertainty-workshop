@@ -108,4 +108,3 @@ Colab links (a Google account and internet are needed):
 - [01_uncertainty_signals](https://colab.research.google.com/github/Shafiya0101/pycon2026-uncertainty-workshop/blob/main/notebooks/01_uncertainty_signals.ipynb)
 - [02_fingerprinting](https://colab.research.google.com/github/Shafiya0101/pycon2026-uncertainty-workshop/blob/main/notebooks/02_fingerprinting.ipynb)
 - [03_adaptive_policy](https://colab.research.google.com/github/Shafiya0101/pycon2026-uncertainty-workshop/blob/main/notebooks/03_adaptive_policy.ipynb)
-- [04_break_the_detector](https://colab.research.google.com/github/Shafiya0101/pycon2026-uncertainty-workshop/blob/main/notebooks/04_break_the_detector.ipynb)
